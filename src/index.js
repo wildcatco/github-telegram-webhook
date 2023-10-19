@@ -1,15 +1,16 @@
-const express = require("express");
-const { verifySignature } = require("./utils");
 require("dotenv").config();
+const express = require("express");
+const { handleWebhook } = require("./webhook");
+const { verifySignature } = require("./verification");
+
+const SECRET = process.env.SECRET;
 
 const app = express();
-const secret = process.env.SECRET;
-
 app.use(express.json());
 
 app.post("/webhook", (req, res) => {
   const isValidRequest = verifySignature(
-    secret,
+    SECRET,
     req.header("X-Hub-Signature-256"),
     req.body
   );
@@ -17,25 +18,11 @@ app.post("/webhook", (req, res) => {
     return res.status(400).send("Not valid request");
   }
 
-  // const githubEvent = req.headers["x-github-event"];
-  //
-  // if (githubEvent === "issues") {
-  //   const data = req.body;
-  //   const action = data.action;
-  //   if (action === "opened") {
-  //     console.log(`An issue was opened with this title: ${data.issue.title}`);
-  //   } else if (action === "closed") {
-  //     console.log(`An issue was closed by ${data.issue.user.login}`);
-  //   } else {
-  //     console.log(`Unhandled action for the issue event: ${action}`);
-  //   }
-  // } else if (githubEvent === "ping") {
-  //   console.log("GitHub sent the ping event");
-  // } else {
-  //   console.log(`Unhandled event: ${githubEvent}`);
-  // }
-
-  res.status(202).send("Accepted!");
+  const githubEvent = req.headers["x-github-event"];
+  const data = req.body;
+  handleWebhook(githubEvent, data)
+    .then(() => res.status(202).send("Success!"))
+    .catch(console.log);
 });
 
 app.listen(3000, () => {

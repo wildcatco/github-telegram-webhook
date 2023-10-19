@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const encoder = new TextEncoder();
 
 async function verifySignature(secret, header, payload) {
-  console.log(header);
   let parts = header.split("=");
   let sigHex = parts[1];
 
