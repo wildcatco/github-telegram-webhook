@@ -132,16 +132,19 @@ function handleReview(action, data) {
       const prNumber = data.pull_request.number;
       const prTitle = data.pull_request.title;
       const url = data.review.html_url;
-      const state = data.review.state === "approved" ? "승인" : "거절";
-      const emoji = data.review.state === "approved" ? "🙆‍" : "🙅‍";
+      const isApproved = data.review.state === "approved";
 
-      return sendMessage(
-        dedent`
-        [${emoji}리뷰${state}] ${sender}
+      if (isApproved) {
+        return sendMessage(
+          dedent`
+        [🙆‍리뷰승인] ${sender}
         #${prNumber} ${prTitle}
         ${url}
         `
-      );
+        );
+      } else {
+        return;
+      }
     }
 
     default:
