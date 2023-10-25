@@ -1,19 +1,19 @@
-const { sendMessage } = require("./bot");
-const { ID_NAME_MAP } = require("./data");
+const { sendGroupMessage, sendPrivateMessage } = require("./bot");
+const { USER_INFO } = require("./data");
 const dedent = require("dedent");
 
 function handleIssue(action, data) {
   switch (action) {
     case "opened": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const sender = USER_INFO[data.sender.login].name;
       const number = data.issue.number;
       const title = data.issue.title;
       const url = data.issue.html_url;
       const assignees = data.issue.assignees
         ?.map((user) => user.login)
-        .map((id) => ID_NAME_MAP[id]);
+        .map((id) => USER_INFO[id].name);
 
-      return sendMessage(
+      return sendGroupMessage(
         dedent`
         [🤦‍ISSUE OPENED] ${sender}
         #${number} ${title}
@@ -24,12 +24,12 @@ function handleIssue(action, data) {
     }
 
     case "closed": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const sender = USER_INFO[data.sender.login].name;
       const number = data.issue.number;
       const title = data.issue.title;
       const url = data.issue.html_url;
 
-      return sendMessage(
+      return sendGroupMessage(
         dedent`
         [💪ISSUE CLOSED] ${sender}
         #${number} ${title}
@@ -45,12 +45,12 @@ function handleIssue(action, data) {
 function handlePullRequest(action, data) {
   switch (action) {
     case "opened": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const sender = USER_INFO[data.sender.login].name;
       const prNumber = data.number;
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
 
-      return sendMessage(
+      return sendGroupMessage(
         dedent`
         [✍️PR] ${sender}
         #${prNumber} ${prTitle}
@@ -60,14 +60,14 @@ function handlePullRequest(action, data) {
     }
 
     case "closed": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const sender = USER_INFO[data.sender.login].name;
       const prNumber = data.number;
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
       const merged = data.pull_request.merged;
 
       if (merged) {
-        return sendMessage(
+        return sendGroupMessage(
           dedent`
         [🚀MERGED] ${sender}
         #${prNumber} ${prTitle}
@@ -83,16 +83,20 @@ function handlePullRequest(action, data) {
       const prNumber = data.number;
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
-      const sender = ID_NAME_MAP[data.sender.login];
-      const reviewer = ID_NAME_MAP[data.requested_reviewer.login];
-
-      return sendMessage(
-        dedent`
-        [🙏리뷰요청] ${sender} → ${reviewer}
+      const senderId = data.sender.login;
+      const senderName = USER_INFO[senderId].name;
+      const reviewerId = data.requested_reviewer.login;
+      const reviewerName = USER_INFO[reviewerId].name;
+      const message = dedent`
+        [🙏리뷰요청] ${senderName} → ${reviewerName}
         #${prNumber} ${prTitle}
         ${prUrl}
-        `
-      );
+        `;
+
+      return Promise.all([
+        sendGroupMessage(message),
+        sendPrivateMessage({ id: reviewerId, message }),
+      ]);
     }
 
     default:
@@ -103,20 +107,31 @@ function handlePullRequest(action, data) {
 function handleReviewComment(action, data) {
   switch (action) {
     case "created": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const senderId = data.sender.login;
+      const senderName = USER_INFO[senderId].name;
       const prNumber = data.pull_request.number;
       const prTitle = data.pull_request.title;
       const comment = data.comment.body;
       const commentUrl = data.comment.html_url;
-
-      return sendMessage(
-        dedent`
-        [🙋리뷰코멘트] ${sender}
+      const prCreatorId = data.pull_request.user.login;
+      const prReviewerIds = data.pull_request.requested_reviewers.map(
+        (user) => user.login
+      );
+      const message = dedent`
+        [🙋리뷰코멘트] ${senderName}
         #${prNumber} ${prTitle}
         ${comment}
         ${commentUrl}
-        `
+        `;
+
+      const idsToSend = [prCreatorId, ...prReviewerIds].filter(
+        (id) => id !== senderId
       );
+
+      return Promise.all([
+        sendGroupMessage(message),
+        ...idsToSend.map((id) => sendPrivateMessage({ id, message })),
+      ]);
     }
 
     default:
@@ -128,20 +143,23 @@ function handleReview(action, data) {
   switch (action) {
     case "edited":
     case "submitted": {
-      const sender = ID_NAME_MAP[data.sender.login];
+      const sender = USER_INFO[data.sender.login].name;
       const prNumber = data.pull_request.number;
       const prTitle = data.pull_request.title;
       const url = data.review.html_url;
       const isApproved = data.review.state === "approved";
+      const prCreatorId = data.pull_request.user.login;
 
       if (isApproved) {
-        return sendMessage(
-          dedent`
+        const message = dedent`
         [🙆‍리뷰승인] ${sender}
         #${prNumber} ${prTitle}
         ${url}
-        `
-        );
+        `;
+        return Promise.all([
+          sendGroupMessage(message),
+          sendPrivateMessage({ id: prCreatorId, message }),
+        ]);
       } else {
         return;
       }
