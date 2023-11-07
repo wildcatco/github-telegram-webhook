@@ -18,7 +18,7 @@ app.post("/webhook/github", (req, res) => {
     return res.status(400).send("Not valid request");
   }
 
-  const event = req.headers["x-github-event"];
+  const event = req.header("x-github-event");
   const data = req.body;
   handleWebhook(event, data, "github")
     .then(() => res.status(202).send("Success!"))
@@ -30,7 +30,7 @@ app.post("/webhook/gitlab", (req, res) => {
     return res.status(400).send("Not valid request");
   }
 
-  const event = req.headers["X-Gitlab-Event"];
+  const event = req.header("X-Gitlab-Event");
   const data = req.body;
   handleWebhook(event, data, "gitlab")
     .then(() => res.status(202).send("Success!"))

@@ -2,10 +2,12 @@ const { getNameFromGitlabId } = require("../data");
 const { sendGroupMessage } = require("../bot");
 const dedent = require("dedent");
 
-function handleMergeRequest(action, data) {
+function handleMergeRequest(data) {
+  const action = data.object_attributes.action;
+  console.log(data);
   switch (action) {
-    case "open" | "reopen": {
-      console.log(data.user.username);
+    case "open":
+    case "reopen": {
       const mrCreatorName = getNameFromGitlabId(data.user.username);
       const mrNumber = data.object_attributes.iid;
       const mrTitle = data.object_attributes.title;
