@@ -17,11 +17,11 @@ function handleWebhook(event, data, from) {
         throw new Error(`[${event}] event not valid`);
     }
   } else if (from === "gitlab") {
-    console.log(event);
-    console.log(data);
     switch (event) {
       case "Merge Request Hook":
         return gitlabHandler.handleMergeRequest(data);
+      case "Issue Hook":
+        return gitlabHandler.handleIssue(data);
     }
   }
 }
