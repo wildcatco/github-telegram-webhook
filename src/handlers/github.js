@@ -1,17 +1,17 @@
-const { sendGroupMessage, sendPrivateMessage } = require("./bot");
-const { USER_INFO } = require("./data");
+const { sendGroupMessage, sendPrivateMessage } = require("../bot");
+const { getNameFromGithubId, getNameFromGitlabId } = require("../data");
 const dedent = require("dedent");
 
 function handleIssue(action, data) {
   switch (action) {
     case "opened": {
-      const sender = USER_INFO[data.sender.login].name;
+      const sender = getNameFromGithubId(data.sender.login);
       const number = data.issue.number;
       const title = data.issue.title;
       const url = data.issue.html_url;
       const assignees = data.issue.assignees
         ?.map((user) => user.login)
-        .map((id) => USER_INFO[id].name);
+        .map((id) => getNameFromGithubId(id));
 
       return sendGroupMessage(
         dedent`
@@ -24,7 +24,7 @@ function handleIssue(action, data) {
     }
 
     case "closed": {
-      const sender = USER_INFO[data.sender.login].name;
+      const sender = getNameFromGithubId(data.sender.login);
       const number = data.issue.number;
       const title = data.issue.title;
       const url = data.issue.html_url;
@@ -45,7 +45,7 @@ function handleIssue(action, data) {
 function handlePullRequest(action, data) {
   switch (action) {
     case "opened": {
-      const sender = USER_INFO[data.sender.login].name;
+      const sender = getNameFromGithubId(data.sender.login);
       const prNumber = data.number;
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
@@ -60,7 +60,7 @@ function handlePullRequest(action, data) {
     }
 
     case "closed": {
-      const sender = USER_INFO[data.sender.login].name;
+      const sender = getNameFromGithubId(data.sender.login);
       const prNumber = data.number;
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
@@ -84,9 +84,9 @@ function handlePullRequest(action, data) {
       const prTitle = data.pull_request.title;
       const prUrl = data.pull_request.html_url;
       const senderId = data.sender.login;
-      const senderName = USER_INFO[senderId].name;
+      const senderName = getNameFromGitlabId(senderId);
       const reviewerId = data.requested_reviewer.login;
-      const reviewerName = USER_INFO[reviewerId].name;
+      const reviewerName = getNameFromGithubId(reviewerId);
       const message = dedent`
         [🙏리뷰요청] ${senderName} → ${reviewerName}
         #${prNumber} ${prTitle}
@@ -95,7 +95,7 @@ function handlePullRequest(action, data) {
 
       return Promise.all([
         sendGroupMessage(message),
-        sendPrivateMessage({ id: reviewerId, message }),
+        sendPrivateMessage({ name: reviewerName, message }),
       ]);
     }
 
@@ -108,7 +108,7 @@ function handleReviewComment(action, data) {
   switch (action) {
     case "created": {
       const senderId = data.sender.login;
-      const senderName = USER_INFO[senderId].name;
+      const senderName = getNameFromGithubId(senderId);
       const prNumber = data.pull_request.number;
       const prTitle = data.pull_request.title;
       const comment = data.comment.body;
@@ -130,7 +130,9 @@ function handleReviewComment(action, data) {
 
       return Promise.all([
         sendGroupMessage(message),
-        ...idsToSend.map((id) => sendPrivateMessage({ id, message })),
+        ...idsToSend.map((id) =>
+          sendPrivateMessage({ name: getNameFromGithubId(id), message })
+        ),
       ]);
     }
 
@@ -143,7 +145,7 @@ function handleReview(action, data) {
   switch (action) {
     case "edited":
     case "submitted": {
-      const sender = USER_INFO[data.sender.login].name;
+      const sender = getNameFromGithubId(data.sender.login);
       const prNumber = data.pull_request.number;
       const prTitle = data.pull_request.title;
       const url = data.review.html_url;
@@ -158,7 +160,10 @@ function handleReview(action, data) {
         `;
         return Promise.all([
           sendGroupMessage(message),
-          sendPrivateMessage({ id: prCreatorId, message }),
+          sendPrivateMessage({
+            name: getNameFromGithubId(prCreatorId),
+            message,
+          }),
         ]);
       } else {
         return;
@@ -170,7 +175,7 @@ function handleReview(action, data) {
   }
 }
 
-module.exports = {
+exports.githubHandler = {
   handleIssue,
   handlePullRequest,
   handleReviewComment,

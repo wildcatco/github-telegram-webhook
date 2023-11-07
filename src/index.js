@@ -18,25 +18,23 @@ app.post("/webhook/github", (req, res) => {
     return res.status(400).send("Not valid request");
   }
 
-  const githubEvent = req.headers["x-github-event"];
+  const event = req.headers["x-github-event"];
   const data = req.body;
-  handleWebhook(githubEvent, data)
+  handleWebhook(event, data, "github")
     .then(() => res.status(202).send("Success!"))
     .catch(console.log);
 });
 
 app.post("/webhook/gitlab", (req, res) => {
   if (process.env.SECRET !== req.header("X-Gitlab-Token")) {
-    console.log("fail");
     return res.status(400).send("Not valid request");
   }
 
-  console.log("success");
-  // const githubEvent = req.headers["x-github-event"];
-  // const data = req.body;
-  // handleWebhook(githubEvent, data)
-  //   .then(() => res.status(202).send("Success!"))
-  //   .catch(console.log);
+  const event = req.headers["X-Gitlab-Event"];
+  const data = req.body;
+  handleWebhook(event, data, "gitlab")
+    .then(() => res.status(202).send("Success!"))
+    .catch(console.log);
 });
 
 app.listen(3000, () => {

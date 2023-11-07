@@ -7,17 +7,17 @@ const token = process.env.GROUP_TOKEN;
 const bot = new TelegramBot(token);
 
 const privateBots = {};
-Object.keys(USER_INFO).forEach((id) => {
-  privateBots[id] = new TelegramBot(USER_INFO[id].token);
+USER_INFO.forEach((user) => {
+  privateBots[user.name] = new TelegramBot(user.token);
 });
 
 function sendGroupMessage(message) {
   return bot.sendMessage(chatId, message, { disable_web_page_preview: true });
 }
 
-function sendPrivateMessage({ id, message }) {
-  const privateBot = privateBots[id];
-  const chatId = USER_INFO[id].chatId;
+function sendPrivateMessage({ name, message }) {
+  const privateBot = privateBots[name];
+  const chatId = USER_INFO.find((user) => user.name === name).chatId;
   return privateBot.sendMessage(chatId, message, {
     disable_web_page_preview: true,
   });
