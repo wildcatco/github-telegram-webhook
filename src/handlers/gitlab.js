@@ -1,15 +1,15 @@
-const { getNameFromGitlabId } = require("../data");
-const { sendGroupMessage } = require("../bot");
-const dedent = require("dedent");
+const { getNameFromGitlabId } = require('../data');
+const { sendGroupMessage } = require('../bot');
+const dedent = require('dedent');
 
 function handleIssue(data) {
   const action = data.object_attributes.action;
   switch (action) {
-    case "open": {
+    case 'open': {
       const issueCreator = getNameFromGitlabId(data.user.username);
       const number = data.object_attributes.id;
       const title = data.object_attributes.title;
-      const url = addPortToUrl(data.object_attributes.url);
+      const url = data.object_attributes.url;
       const assignees = data.assignees?.map((a) =>
         getNameFromGitlabId(a.username)
       );
@@ -19,17 +19,17 @@ function handleIssue(data) {
         [🤦‍ISSUE OPENED] ${issueCreator}
         #${number} ${title}
         assignees: ${
-          assignees && assignees.length > 0 ? assignees.join(", ") : "없음"
+          assignees && assignees.length > 0 ? assignees.join(', ') : '없음'
         }
         ${url}
         `
       );
     }
-    case "close": {
+    case 'close': {
       const issueCreator = getNameFromGitlabId(data.user.username);
       const number = data.object_attributes.id;
       const title = data.object_attributes.title;
-      const url = addPortToUrl(data.object_attributes.url);
+      const url = data.object_attributes.url;
 
       return sendGroupMessage(
         dedent`
@@ -45,12 +45,12 @@ function handleIssue(data) {
 function handleMergeRequest(data) {
   const action = data.object_attributes.action;
   switch (action) {
-    case "open":
-    case "reopen": {
+    case 'open':
+    case 'reopen': {
       const mrCreatorName = getNameFromGitlabId(data.user.username);
       const mrNumber = data.object_attributes.iid;
       const mrTitle = data.object_attributes.title;
-      const mrUrl = addPortToUrl(data.object_attributes.url);
+      const mrUrl = data.object_attributes.url;
 
       return sendGroupMessage(
         dedent`
@@ -61,11 +61,11 @@ function handleMergeRequest(data) {
       );
     }
 
-    case "merge": {
+    case 'merge': {
       const mrCreatorName = getNameFromGitlabId(data.user.username);
       const mrNumber = data.object_attributes.iid;
       const mrTitle = data.object_attributes.title;
-      const mrUrl = addPortToUrl(data.object_attributes.url);
+      const mrUrl = data.object_attributes.url;
 
       return sendGroupMessage(
         dedent`
@@ -76,11 +76,11 @@ function handleMergeRequest(data) {
       );
     }
 
-    case "approval": {
+    case 'approval': {
       const mrNumber = data.object_attributes.iid;
       const reviewer = getNameFromGitlabId(data.user.username);
       const mrTitle = data.object_attributes.title;
-      const mrUrl = addPortToUrl(data.object_attributes.url);
+      const mrUrl = data.object_attributes.url;
 
       return sendGroupMessage(
         dedent`
@@ -97,7 +97,3 @@ exports.gitlabHandler = {
   handleIssue,
   handleMergeRequest,
 };
-
-function addPortToUrl(url) {
-  return url.replace("/mv1/", ":32080/mv1/");
-}
