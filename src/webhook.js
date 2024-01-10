@@ -6,6 +6,8 @@ function handleWebhook(event, data) {
       return handler.handleMergeRequest(data);
     case 'Issue Hook':
       return handler.handleIssue(data);
+    case 'Note Hook':
+      return handler.handleComment(data);
   }
 }
 

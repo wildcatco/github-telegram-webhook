@@ -93,7 +93,25 @@ function handleMergeRequest(data) {
   }
 }
 
+function handleComment(data) {
+  const commentWriterName = getNameFromGitlabId(data.user.username);
+  const mrNumber = data.merge_request.iid;
+  const mrTitle = data.merge_request.title;
+  const commentUrl = data.object_attributes.url;
+  const content = data.object_attributes.note;
+
+  return sendGroupMessage(
+    dedent`
+    [💬COMMENT] ${commentWriterName}
+    #${mrNumber} ${mrTitle}
+    ${commentUrl}
+    ${content}
+    `
+  );
+}
+
 exports.handler = {
   handleIssue,
   handleMergeRequest,
+  handleComment,
 };
