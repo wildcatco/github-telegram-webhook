@@ -44,6 +44,10 @@ function handleIssue(data) {
 
 function handleMergeRequest(data) {
   const action = data.object_attributes.action;
+
+  console.log(data);
+  console.log(action);
+
   switch (action) {
     case 'open':
     case 'reopen': {
@@ -76,7 +80,7 @@ function handleMergeRequest(data) {
       );
     }
 
-    case 'approval': {
+    case 'approved': {
       const mrNumber = data.object_attributes.iid;
       const reviewer = getNameFromGitlabId(data.user.username);
       const mrTitle = data.object_attributes.title;
@@ -95,19 +99,35 @@ function handleMergeRequest(data) {
 
 function handleComment(data) {
   const commentWriterName = getNameFromGitlabId(data.user.username);
-  const mrNumber = data.merge_request.iid;
-  const mrTitle = data.merge_request.title;
   const commentUrl = data.object_attributes.url;
   const content = data.object_attributes.note;
+  const noteType = data.object_attributes.noteable_type;
 
-  return sendGroupMessage(
-    dedent`
-    [💬COMMENT] ${commentWriterName}
-    #${mrNumber} ${mrTitle}
-    ${commentUrl}
-    ${content}
-    `
-  );
+  if (noteType === 'Issue') {
+    const issueNumber = data.issue.iid;
+    const issueTitle = data.issue.title;
+
+    return sendGroupMessage(
+      dedent`
+      [💬COMMENT] ${commentWriterName}
+      #${issueNumber} ${issueTitle}
+      ${commentUrl}
+      ${content}
+      `
+    );
+  } else {
+    const mrNumber = data.merge_request.iid;
+    const mrTitle = data.merge_request.title;
+
+    return sendGroupMessage(
+      dedent`
+      [💬COMMENT] ${commentWriterName}
+      #${mrNumber} ${mrTitle}
+      ${commentUrl}
+      ${content}
+      `
+    );
+  }
 }
 
 exports.handler = {
