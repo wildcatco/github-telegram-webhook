@@ -1,5 +1,5 @@
-const { getNameFromGitlabId } = require('../data');
-const { sendGroupMessage } = require('../bot');
+const { getNameFromGitlabId } = require('./data');
+const { sendGroupMessage } = require('./bot');
 const dedent = require('dedent');
 
 function handleIssue(data) {
@@ -93,7 +93,7 @@ function handleMergeRequest(data) {
   }
 }
 
-exports.gitlabHandler = {
+exports.handler = {
   handleIssue,
   handleMergeRequest,
 };
