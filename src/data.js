@@ -1,5 +1,9 @@
 const USER_INFO = [
   {
+    name: '덕호',
+    gitlabId: 'duckho',
+  },
+  {
     name: '지후',
     gitlabId: '2023767',
     token: process.env.JIHOO_TOKEN,
