@@ -1,17 +1,17 @@
-const { getNameFromGitlabId } = require('./data');
-const { sendGroupMessage } = require('./bot');
-const dedent = require('dedent');
+const { getNameFromGitlabId } = require("./data");
+const { sendGroupMessage } = require("./bot");
+const dedent = require("dedent");
 
 function handleIssue(data) {
   const action = data.object_attributes.action;
   switch (action) {
-    case 'open': {
+    case "open": {
       const issueCreator = getNameFromGitlabId(data.user.username);
       const number = data.object_attributes.id;
       const title = data.object_attributes.title;
       const url = data.object_attributes.url;
       const assignees = data.assignees?.map((a) =>
-        getNameFromGitlabId(a.username)
+        getNameFromGitlabId(a.username),
       );
 
       return sendGroupMessage(
@@ -19,13 +19,13 @@ function handleIssue(data) {
         [🤦‍ISSUE OPENED] ${issueCreator}
         #${number} ${title}
         assignees: ${
-          assignees && assignees.length > 0 ? assignees.join(', ') : '없음'
+          assignees && assignees.length > 0 ? assignees.join(", ") : "없음"
         }
         ${url}
-        `
+        `,
       );
     }
-    case 'close': {
+    case "close": {
       const issueCreator = getNameFromGitlabId(data.user.username);
       const number = data.object_attributes.id;
       const title = data.object_attributes.title;
@@ -36,7 +36,7 @@ function handleIssue(data) {
         [💪ISSUE CLOSED] ${issueCreator}
         #${number} ${title}
         ${url}
-        `
+        `,
       );
     }
   }
@@ -45,12 +45,9 @@ function handleIssue(data) {
 function handleMergeRequest(data) {
   const action = data.object_attributes.action;
 
-  console.log(data);
-  console.log(action);
-
   switch (action) {
-    case 'open':
-    case 'reopen': {
+    case "open":
+    case "reopen": {
       const mrCreatorName = getNameFromGitlabId(data.user.username);
       const mrNumber = data.object_attributes.iid;
       const mrTitle = data.object_attributes.title;
@@ -61,11 +58,11 @@ function handleMergeRequest(data) {
         [✍️PR] ${mrCreatorName}
         #${mrNumber} ${mrTitle}
         ${mrUrl}
-        `
+        `,
       );
     }
 
-    case 'merge': {
+    case "merge": {
       const mrCreatorName = getNameFromGitlabId(data.user.username);
       const mrNumber = data.object_attributes.iid;
       const mrTitle = data.object_attributes.title;
@@ -76,11 +73,11 @@ function handleMergeRequest(data) {
         [🚀MERGED] ${mrCreatorName}
         #${mrNumber} ${mrTitle}
         ${mrUrl}
-        `
+        `,
       );
     }
 
-    case 'approved': {
+    case "approved": {
       const mrNumber = data.object_attributes.iid;
       const reviewer = getNameFromGitlabId(data.user.username);
       const mrTitle = data.object_attributes.title;
@@ -91,7 +88,7 @@ function handleMergeRequest(data) {
         [🙆‍리뷰승인] ${reviewer}
         #${mrNumber} ${mrTitle}
         ${mrUrl}
-        `
+        `,
       );
     }
   }
@@ -103,7 +100,7 @@ function handleComment(data) {
   const content = data.object_attributes.note;
   const noteType = data.object_attributes.noteable_type;
 
-  if (noteType === 'Issue') {
+  if (noteType === "Issue") {
     const issueNumber = data.issue.iid;
     const issueTitle = data.issue.title;
 
@@ -113,7 +110,7 @@ function handleComment(data) {
       #${issueNumber} ${issueTitle}
       ${commentUrl}
       ${content}
-      `
+      `,
     );
   } else {
     const mrNumber = data.merge_request.iid;
@@ -125,7 +122,7 @@ function handleComment(data) {
       #${mrNumber} ${mrTitle}
       ${commentUrl}
       ${content}
-      `
+      `,
     );
   }
 }
