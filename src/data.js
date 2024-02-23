@@ -45,6 +45,12 @@ const USER_INFO = [
     token: process.env.HYEONGYU_TOKEN,
     chatId: process.env.HYEONGYU_CHAT_ID,
   },
+  {
+    name: '병호',
+    gitlabId: 'byongho_lee',
+    token: process.env.BYONGHO_TOKEN,
+    chatId: process.env.BYONGHO_CHAT_ID,
+  },
 ];
 
 function getNameFromGitlabId(id) {
